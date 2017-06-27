@@ -23,21 +23,17 @@ for item in links:
         print(item_text)
         print(item_href)
 
-print("\n\nReddit front page")
-r = requests.get("http://www.reddit.com")
-soup = BeautifulSoup(r.text, "html.parser")
-results = soup.find("div", {"class": "content", "role": "main"})
+        #Directional navigation
+        print("Summary:", item.find("a").parent.parent.find("p").text)
 
-results2 = results.find("div", {"id": "siteTable", "class": "sitetable linklisting"})
-results3 = results2.findAll("p", {"class": "title"})
+        #children = item.children
+        #for child in children:
+        #   print("Child:", child)
 
-#print(results2)
+        children = item.find("h2")
+        print("Next sibling of the h2:", children.next_sibling)
 
-for item in results3:
-    item_text = item.find("a").text
-    item_href = item.find("a").attrs["href"]
 
-    if item_text and item_href:
-        print(item_text)
-        print(item_href)
-        print("")
+
+
+
