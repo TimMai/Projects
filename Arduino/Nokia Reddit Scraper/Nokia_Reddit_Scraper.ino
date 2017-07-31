@@ -2,6 +2,7 @@
 #include <Adafruit_PCD8544.h>
 //Followed https://www.youtube.com/watch?v=VtZvf5T98FI as a basis for the menu code
 /*
+  LCD -> Arduino Uno pin layout
   8 -> GND
   7 -> PIN 7
   6 -> 3.3 V
@@ -14,17 +15,134 @@
   DOWN -> PIN 12
   SELECT -> PIN 8
 */
+static const unsigned char pic2[] PROGMEM = {
+  B11111111, B11111111, B11111111, B11111110, B11111111, B11111111, B11111111, B11110000,
+  B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11110000,
+  B11111111, B11111111, B11111111, B11110111, B10110101, B11011111, B11111111, B11110000,
+  B11111111, B11111111, B11110111, B11011110, B11011111, B01110111, B11111111, B11100000,
+  B11111111, B11111111, B11111111, B01111110, B01111011, B11101111, B11111111, B10110000,
+  B11111111, B11111111, B11011001, B11000001, B10000101, B10110111, B10111111, B11100000,
+  B11111111, B10111101, B11110111, B01011010, B01011010, B01101100, B10111111, B11100000,
+  B11111111, B11111011, B11101000, B00010010, B10001000, B10010111, B11011111, B01100000,
+  B11111101, B11111101, B11111001, B10100010, B00101001, B10010101, B01101110, B11000000,
+  B11111111, B01100110, B00000100, B10001000, B10000010, B01001010, B10010101, B10100000,
+  B11111111, B01010101, B01100000, B00000001, B00001000, B01010001, B10111001, B01000000,
+  B11111101, B11101010, B00000110, B00101000, B00100010, B00100110, B00101010, B10100000,
+  B11011110, B10010110, B00010000, B00000000, B10000001, B00010011, B10010101, B00100000,
+  B10111010, B01100001, B10000000, B00000000, B00000000, B10001000, B01101010, B01000000,
+  B10111011, B10011010, B01000000, B00001111, B11100000, B10010100, B00100011, B00000000,
+  B01100110, B01100000, B00000000, B00011111, B11110000, B00000010, B10010100, B10000000,
+  B10101010, B01001000, B01000000, B00111111, B11111100, B01000011, B10001000, B10000000,
+  B11011101, B10110010, B00000000, B11111111, B11111100, B00000000, B00110011, B00000000,
+  B00010110, B00000101, B00000001, B11111111, B11111111, B00010110, B01000100, B00000000,
+  B01101001, B01100000, B00100011, B11111111, B11111100, B00000000, B00100010, B01000000,
+  B10100100, B00100000, B00000001, B11111011, B11111110, B01000001, B00000000, B00000000,
+  B00011010, B10101001, B01000100, B11111011, B01111100, B00000100, B01011010, B00000000,
+  B00101001, B10001010, B00100000, B11111001, B01111100, B00010000, B00000000, B00000000,
+  B00100100, B00100000, B00000000, B01101100, B01111100, B00000010, B00101000, B00000000,
+  B10101100, B00101000, B00000000, B00101110, B00111000, B00001000, B01010010, B00000000,
+  B10000001, B01000010, B00100001, B11110000, B01111111, B00010000, B00000000, B00000000,
+  B00010001, B00011010, B01101111, B11111011, B11111111, B11100001, B00001000, B00000000,
+  B01101100, B10000000, B00111111, B11111110, B10111111, B11111101, B01010001, B00000000,
+  B00100010, B10001001, B01111111, B11100000, B00100110, B11111111, B00000100, B00000000,
+  B00011010, B00100001, B11111111, B11100101, B01011111, B11111111, B01000000, B10000000,
+  B10000000, B10000011, B11111111, B01111010, B00011011, B10111111, B11010010, B00000000,
+  B00101101, B00110111, B11111111, B01101111, B11101110, B11111111, B11001100, B00000000,
+  B10010100, B10001111, B11111111, B11101011, B10111101, B11111111, B11111100, B00000000,
+  B01101001, B01101111, B11111111, B11111010, B01100110, B01111111, B11110010, B10000000,
+  B11010101, B01011111, B11111111, B11011110, B01010110, B10111111, B11111010, B00100000,
+  B00101010, B10111111, B11111111, B10111011, B11011011, B11111111, B11111101, B11000000,
+  B10011001, B11111111, B11111111, B11101111, B10011011, B11111111, B11111110, B01000000,
+  B11111111, B11111111, B11111111, B11111110, B11110111, B11111111, B11111101, B10100000,
+  B00100100, B01111111, B11111111, B11111111, B11100111, B11111111, B11111110, B01000000,
+  B11111111, B01111111, B11111111, B11111011, B11111111, B11111111, B11111111, B10100000,
+  B11111111, B11111111, B11111111, B11111110, B11111111, B11111111, B11111111, B11000000,
+  B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11110000,
+  B11111111, B11111111, B11101111, B11111101, B11111101, B11111111, B11101111, B11110000,
+  B01010110, B10000001, B00001010, B01000000, B00000000, B11101011, B00001110, B01000000,
+  B00011000, B01001000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
+  B01000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
+  B00001000, B00000000, B00000000, B00000000, B01010000, B00000000, B00000000, B00000000,
+  B01000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
+  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
+  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
+  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
+  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
+  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
+  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
+  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
+  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
+  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
+  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
+  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
+  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
+};
 
+static const unsigned char pic[] PROGMEM = {
+  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
+  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
+  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
+  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
+  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
+  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
+  B00000000, B00001111, B11100000, B00000000, B00000000, B00000000,
+  B00000000, B00011000, B00110000, B00000000, B00000000, B00000000,
+  B00000000, B00110000, B00010000, B00000000, B00000000, B00000000,
+  B00000000, B00100000, B00001000, B00000000, B00000000, B00000000,
+  B00000000, B01100000, B00001000, B00000000, B00000000, B00000000,
+  B00000000, B11110001, B11001100, B00000000, B00000000, B00000000,
+  B00000001, B11011011, B11101000, B00000000, B00000000, B00000000,
+  B00000001, B11010011, B10101000, B00000000, B00000000, B00000000,
+  B00000001, B11111001, B01101000, B00000000, B00000000, B00000000,
+  B00000001, B10011101, B11001000, B00000000, B00000000, B00000000,
+  B00000001, B11111111, B11001000, B00000011, B00000000, B00000000,
+  B00000001, B10110100, B00001000, B00000010, B10000000, B00000000,
+  B00000001, B00000000, B00001000, B00000110, B10000000, B00000000,
+  B00000001, B00000000, B00001000, B00000100, B01000000, B00000000,
+  B00000001, B00000000, B00001000, B00001100, B10000000, B00000000,
+  B00000001, B00000000, B11101100, B00001000, B10000000, B00000000,
+  B00000001, B00000000, B01000101, B11111001, B10000000, B00000000,
+  B00000001, B00000000, B11100111, B00110001, B10000000, B00000000,
+  B00000001, B00000000, B01100100, B10110011, B11000000, B00000000,
+  B00000000, B10000000, B10100100, B11111101, B01100000, B00000000,
+  B00000000, B10000000, B01100001, B00000110, B11000000, B00000000,
+  B00000000, B10000000, B01110000, B00000001, B00100000, B00000000,
+  B00000000, B11000000, B11011000, B00000001, B11100000, B00000000,
+  B00000000, B01000000, B10111000, B00000001, B11000000, B00000000,
+  B00000000, B01100000, B11100000, B00000001, B00000000, B00000000,
+  B00000000, B00100000, B10000000, B10000011, B00000000, B00000000,
+  B00000000, B00110000, B00000000, B00000010, B00000000, B00000000,
+  B00000000, B00001100, B00000000, B00001110, B00000000, B00000000,
+  B00000000, B00000111, B10000000, B00111000, B00000000, B00000000,
+  B00000000, B00000011, B11111110, B11110000, B00000000, B00000000,
+  B00000000, B00000011, B10011010, B10000000, B00000000, B00000000,
+  B00000000, B00010011, B10011111, B10000000, B00000000, B00000000,
+  B00000000, B00111111, B00011010, B10000000, B00000000, B00000000,
+  B00000000, B00010101, B00001100, B10000000, B00000000, B00000000,
+  B00000000, B00011011, B00000111, B10000000, B00000000, B00000000,
+  B00000000, B00000110, B00000011, B00000000, B00000000, B00000000,
+  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
+  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
+  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
+  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
+  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
+  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
+};
+
+//Options
 boolean backlight = true;
 int contrast = 42;
-
 int num_results = 10;   //Number of results that will be displayed
-int menuitem = 1;       //Current item on the menu
-String page = "main";   //Current page
+bool readability = true;
+
+int menu_item = 1;      //Current item on the menu
+int page = 1;           //Current page
 String sub = "popular"; //Current selected sub
 String preset_subs[6];  //Array of preset subs
 int letter = 0;         //Keep track of current letter when typing
 char chars[26];         //Characters A-Z
+
+int test = 0; //Testing with the GFX library on the contrast page
 
 /*
   Pages: main, sub, type, scrape, options, change_contrast, change_num, choose_preset
@@ -35,6 +153,16 @@ char chars[26];         //Characters A-Z
   change_contrast - change contrast
   change_num - change number of scraped results
   choose_preset - choose a preset sub
+*/
+/*
+  main - 1
+  subreddit menu - 2
+  type sub - 3
+  choose preset sub - 4
+  scrape - 5
+  options - 6
+  num of results - 7
+  change contrast - 8
 */
 
 //Keep track of whether the button has been pressed
@@ -74,6 +202,7 @@ void setup() {
   display.clearDisplay();
 
   display.setTextSize(2);
+
   display.setTextColor(BLACK, WHITE);
   display.setCursor(5, 0);
   display.print("Reddit");
@@ -82,39 +211,7 @@ void setup() {
   display.display();
   delay(2000);
   display.clearDisplay();
-
-  chars[0] = 'a';
-  chars[1] = 'b';
-  chars[2] = 'c';
-  chars[3] = 'd';
-  chars[4] = 'e';
-  chars[5] = 'f';
-  chars[6] = 'g';
-  chars[7] = 'h';
-  chars[8] = 'i';
-  chars[9] = 'j';
-  chars[10] = 'k';
-  chars[11] = 'l';
-  chars[12] = 'm';
-  chars[13] = 'n';
-  chars[14] = 'o';
-  chars[15] = 'p';
-  chars[16] = 'q';
-  chars[17] = 'r';
-  chars[18] = 's';
-  chars[19] = 't';
-  chars[20] = 'u';
-  chars[21] = 'v';
-  chars[22] = 'w';
-  chars[23] = 'x';
-  chars[24] = 'y';
-  chars[25] = 'z';
-  preset_subs[0] = "popular";
-  preset_subs[1] = "jokes";
-  preset_subs[2] = "askreddit";
-  preset_subs[3] = "overwatch";
-  preset_subs[4] = "pics";
-  preset_subs[5] = "random";
+  instantiate_vars();
 }
 
 void loop() {
@@ -128,415 +225,530 @@ void loop() {
   check_up_button();
   check_select_button();
 
-  //If-else statements to determine which page is currently being viewed
-
-  if (page == "main") {
-    if (up) {
-      up = false;
-      menuitem--;
-      if (menuitem == 0)
-        menuitem = 3;
-    }
-    else if (down) {
-      down = false;
-      menuitem++;
-      if (menuitem == 4)
-        menuitem = 1;
-    }
-
-    else if (select) {
-      select = false;
-      if (menuitem == 1) {
-        page = "sub";
-        menuitem = 1;
+  //Switch-case statements to determine which page is currently being viewed
+  switch (page) {
+    //Main
+    case 1:
+      if (up) {
+        up = false;
+        menu_item--;
+        if (menu_item == 0)
+          menu_item = 3;
+      }
+      else if (down) {
+        down = false;
+        menu_item++;
+        if (menu_item == 4)
+          menu_item = 1;
       }
 
-      else if (menuitem == 2) {
-        page = "scrape";
-        menuitem = 1;
+      else if (select) {
+        select = false;
+        switch (menu_item) {
+          case 1:
+            page = 2; //Subreddit menu
+            break;
+          case 2:
+            page = 5; //Scrape
+            break;
+          case 3:
+            page = 6; //Options
+            break;
+        }
+        menu_item = 1;
+      }
+      break;
+
+    //Subreddit menu
+    case 2:
+      if (up) {
+        up = false;
+        menu_item--;
+        if (menu_item == 0)
+          menu_item = 3;
       }
 
-      else if (menuitem == 3) {
-        page = "options";
-        menuitem = 1;
+      else if (down) {
+        down = false;
+        menu_item++;
+        if (menu_item == 4)
+          menu_item = 1;
       }
-    }
-  }
 
-  else if (page == "sub") {
-    if (up) {
-      up = false;
-      menuitem--;
-      if (menuitem == 0)
-        menuitem = 3;
-    }
+      else if (select) {
+        select = false;
+        switch (menu_item) {
+          case 1:
+            page = 3; //Type sub
+            sub = "";
+            letter = 0;
+            break;
+            
+          case 2:
+            page = 4; //Choose preset sub
+            break;
+            
+          case 3:
+            page = 1; //Main menu
+            break;
+        }
+        menu_item = 1;
+      }
+      break;
 
-    else if (down) {
-      down = false;
-      menuitem++;
-      if (menuitem == 4)
-        menuitem = 1;
-    }
+    //Type sub
+    case 3:
+      if (up) {
+        up = false;
+        letter++;
+        if (letter == 26)
+          letter = 0;
+      }
 
-    else if (select) {
-      select = false;
-      if (menuitem == 1) {
-        page = "type";
-        menuitem = 1;
-        sub = "";
+      else if (down) {
+        down = false;
+        sub += chars[letter];
         letter = 0;
       }
 
-      else if (menuitem == 2) {
-        page = "choose_preset";
-        menuitem = 1;
+      else if (select) {
+        select = false;
+        page = 2; //Subreddit menu
       }
-      else if (menuitem == 3) {
-        page = "main";
-        menuitem = 1;
-      }
-    }
-  }
+      break;
 
-  else if (page == "type") {
-    if (up) {
-      up = false;
-      letter++;
-      if (letter == 26)
-        letter = 0;
-    }
-
-    else if (down) {
-      down = false;
-      sub += chars[letter];
-      letter = 0;
-    }
-
-    else if (select) {
-      select = false;
-      page = "sub";
-    }
-  }
-
-  else if (page == "options") {
-    if (up) {
-      up = false;
-      menuitem--;
-      if (menuitem == 0)
-        menuitem = 4;
-    }
-
-    else if (down) {
-      down = false;
-      menuitem++;
-      if (menuitem == 5)
-        menuitem = 1;
-    }
-
-    else if (select) {
-      select = false;
-      if (menuitem == 1) {
-        page = "change_num";
-        menuitem = 1;
+    //Choose preset sub
+    case 4:
+      if (up) {
+        up = false;
+        menu_item--;
+        if (menu_item == 0)
+          menu_item = 5;
       }
 
-      else if (menuitem == 2) {
-        page = "change_contrast";
-        menuitem = 1;
+      else if (down) {
+        down = false;
+        menu_item++;
+        if (menu_item == 6)
+          menu_item = 1;
       }
 
-      else if (menuitem == 3) {
-        if (backlight) {
-          backlight = false;
-          digitalWrite(7, HIGH);
+      else if (select) {
+        select = false;
+        switch (menu_item) {
+          case 1:
+            sub = preset_subs[0];
+            break;
+          case 2:
+            sub = preset_subs[1];
+            break;
+          case 3:
+            sub = preset_subs[2];
+            break;
+          case 4:
+            sub = preset_subs[3];
+            break;
+          case 5:
+            sub = preset_subs[4];
+            break;
+          case 6:
+            sub = preset_subs[5];
+            break;
         }
+        page = 2; //Subreddit menu
+        menu_item = 1;
+      }
+      break;
 
-        else {
-          backlight = true;
-          digitalWrite(7, LOW);
+    //Case 5 (scrape) is skipped because it is called in the menu() function. It is not here because buttons are not supposed to function here
+
+    //Options
+    case 6:
+      if (up) {
+        up = false;
+        menu_item--;
+        if (menu_item == 0)
+          menu_item = 4;
+      }
+
+      else if (down) {
+        down = false;
+        menu_item++;
+        if (menu_item == 5)
+          menu_item = 1;
+      }
+
+      else if (select) {
+        select = false;
+        switch (menu_item) {
+          case 1:
+            page = 7; //More options
+            menu_item = 1;
+            break;
+            
+          case 2:
+            page = 9; //Change contrast
+            break;
+            
+          case 3:
+            if (backlight) {
+              backlight = false;
+              digitalWrite(7, HIGH);
+            }
+            else {
+              backlight = true;
+              digitalWrite(7, LOW);
+            }
+            menu_item = 3;
+            break;
+            
+          case 4:
+            page = 1; //Main menu
+            menu_item = 1;
+            break;
         }
       }
-      else if (menuitem == 4) {
-        page = "main";
-        menuitem = 1;
+      break;
+
+    //More options
+    case 7:
+      if (up) {
+        up = false;
+        menu_item--;
+        if (menu_item == 0)
+          menu_item = 3;
       }
-    }
-  }
 
-  else if (page == "change_contrast") {
-    if (up) {
-      up = false;
-      contrast++;
-      display.setContrast(contrast);
-    }
-
-    else if (down) {
-      down = false;
-      contrast--;
-      display.setContrast(contrast);
-    }
-
-    else if (select) {
-      select = false;
-      page = "options";
-      menuitem = 1;
-    }
-  }
-
-  else if (page == "change_num") {
-    if (up) {
-      up = false;
-      if (num_results < 25)
-        num_results++;
-    }
-
-    else if (down) {
-      down = false;
-      if (num_results > 1)
-        num_results--;
-    }
-
-    else if (select) {
-      select = false;
-      menuitem = 1;
-      page = "options";
-    }
-  }
-
-  else if (page == "choose_preset") {
-    if (up) {
-      up = false;
-      menuitem--;
-      if (menuitem == 0)
-        menuitem = 5;
-    }
-
-    else if (down) {
-      down = false;
-      menuitem++;
-      if (menuitem == 6)
-        menuitem = 1;
-    }
-
-    else if (select) {
-      select = false;
-      switch (menuitem) {
-        case 1:
-          sub = preset_subs[0];
-          break;
-        case 2:
-          sub = preset_subs[1];
-          break;
-        case 3:
-          sub = preset_subs[2];
-          break;
-        case 4:
-          sub = preset_subs[3];
-          break;
-        case 5:
-          sub = preset_subs[4];
-          break;
-        case 6:
-          sub = preset_subs[5];
-          break;
+      else if (down) {
+        down = false;
+        menu_item++;
+        if (menu_item == 4)
+          menu_item = 1;
       }
-      page = "sub";
-      menuitem = 1;
-    }
+
+      else if (select) {
+        select = false;
+
+        switch(menu_item) {
+          case 1:
+            page = 8;
+            menu_item = 1;
+            break;
+            
+          case 2:
+            if (readability)
+              readability = false;
+            else
+              readability = true;
+            break;
+            
+          case 3:
+            page = 6;   // Leads back to opitons
+            menu_item = 1;
+            break;
+        }
+      }
+      break;
+
+    //Num of results
+    case 8:
+      if (up) {
+        up = false;
+        if (num_results < 25)
+          num_results++;
+      }
+
+      else if (down) {
+        down = false;
+        if (num_results > 1)
+          num_results--;
+      }
+
+      else if (select) {
+        select = false;
+        menu_item = 1;
+        page = 7; //More options
+      }
+      break;
+
+    //Change contrast
+    case 9:
+      if (up) {
+        up = false;
+        contrast++;
+        display.setContrast(contrast);
+      }
+
+      else if (down) {
+        down = false;
+        contrast--;
+        display.setContrast(contrast);
+      }
+
+      else if (select) {
+        select = false;
+        page = 6; //Options
+        menu_item = 1;
+      }
+      break;
   }
 }
 
 void menu() {
-  //If-else statements to determine which page is currently being viewed
-  if (page == "main") {
-    display.setTextSize(1);
-    display.clearDisplay();
-    display.setTextColor(BLACK, WHITE);
-    display.setCursor(0, 0);
-    display.print("Reddit Scraper");
-    display.drawFastHLine(0, 10, 83, BLACK);
-    display.setCursor(0, 15);
-
-    if (menuitem == 1)
-      display.setTextColor(WHITE, BLACK);
-
-    else
+  //Switch-case statements to determine which page is currently being viewed
+  switch (page) {
+    //Main
+    case 1:
+      display.setTextSize(1);
+      display.clearDisplay();
       display.setTextColor(BLACK, WHITE);
+      display.setCursor(0, 0);
+      display.print("Reddit Scraper");
+      display.drawFastHLine(0, 10, 83, BLACK);
 
-    display.print("Choose Sub");
+      if (menu_item == 1)
+        display.setTextColor(WHITE, BLACK);
+      else
+        display.setTextColor(BLACK, WHITE);
+      display.setCursor(0, 15);
+      display.print("Choose Sub");
 
-    display.setCursor(0, 25);
+      if (menu_item == 2)
+        display.setTextColor(WHITE, BLACK);
+      else
+        display.setTextColor(BLACK, WHITE);
+      display.setCursor(0, 25);
+      display.print("Scrape");
 
-    if (menuitem == 2)
-      display.setTextColor(WHITE, BLACK);
+      if (menu_item == 3)
+        display.setTextColor(WHITE, BLACK);
+      else
+        display.setTextColor(BLACK, WHITE);
+      display.setCursor(0, 35);
+      display.print("Options");
+      display.display();
+      break;
 
-    else
+    //Subreddit menu
+    case 2:
+      display.setTextSize(1);
+      display.clearDisplay();
+      display.setCursor(0, 0);
       display.setTextColor(BLACK, WHITE);
+      display.print("Current sub:");
+      display.setCursor(0, 8);
+      display.print(sub);
 
-    display.print("Scrape");
+      if (menu_item == 1)
+        display.setTextColor(WHITE, BLACK);
+      else
+        display.setTextColor(BLACK, WHITE);
+      display.setCursor(0, 18);
+      display.print("Type sub");
 
-    if (menuitem == 3)
-      display.setTextColor(WHITE, BLACK);
+      if (menu_item == 2)
+        display.setTextColor(WHITE, BLACK);
+      else
+        display.setTextColor(BLACK, WHITE);
+      display.setCursor(0, 28);
+      display.print("Choose preset");
 
-    else
+      if (menu_item == 3)
+        display.setTextColor(WHITE, BLACK);
+      else
+        display.setTextColor(BLACK, WHITE);
+      display.setCursor(0, 38);
+      display.print("Exit");
+      display.display();
+      break;
+
+    //Type sub
+    case 3:
+      display.setTextSize(2);
+      display.clearDisplay();
+      display.setCursor(0, 5);
       display.setTextColor(BLACK, WHITE);
+      display.print(chars[letter]);
+      display.setCursor(0, 25);
+      display.setTextSize(1);
+      display.print(sub);
+      display.display();
+      break;
 
-    display.setCursor(0, 35);
-    display.print("Options");
-    display.display();
-  }
+    //Choose preset sub
+    case 4:
+      display.setTextSize(1);
+      display.clearDisplay();
 
-  //Select sub
-  else if (page == "sub") {
-    display.setTextSize(1);
-    display.clearDisplay();
-    display.setCursor(0, 0);
-    display.setTextColor(BLACK, WHITE);
-    display.print("Current sub:");
-    display.setCursor(0, 8);
-    display.print(sub);
+      if (menu_item == 1)
+        display.setTextColor(WHITE, BLACK);
+      else
+        display.setTextColor(BLACK, WHITE);
+      display.setCursor(0, 0);
+      display.print(preset_subs[0]);
 
-    if (menuitem == 1)
-      display.setTextColor(WHITE, BLACK);
-    else
+      if (menu_item == 2)
+        display.setTextColor(WHITE, BLACK);
+      else
+        display.setTextColor(BLACK, WHITE);
+      display.setCursor(0, 10);
+      display.print(preset_subs[1]);
+
+      if (menu_item == 3)
+        display.setTextColor(WHITE, BLACK);
+      else
+        display.setTextColor(BLACK, WHITE);
+      display.setCursor(0, 20);
+      display.print(preset_subs[2]);
+
+      if (menu_item == 4)
+        display.setTextColor(WHITE, BLACK);
+      else
+        display.setTextColor(BLACK, WHITE);
+      display.setCursor(0, 30);
+      display.print(preset_subs[3]);
+
+      if (menu_item == 5)
+        display.setTextColor(WHITE, BLACK);
+      else
+        display.setTextColor(BLACK, WHITE);
+      display.setCursor(0, 40);
+      display.print(preset_subs[4]);
+      display.display();
+      break;
+
+    //Scrape
+    case 5:
+      scrape();
+      break;
+
+    //Options
+    case 6:
+      display.setTextSize(1);
+      display.clearDisplay();
+
+      if (menu_item == 1)
+        display.setTextColor(WHITE, BLACK);
+      else
+        display.setTextColor(BLACK, WHITE);
+
+      display.print("More options");
+      if (menu_item == 2)
+        display.setTextColor(WHITE, BLACK);
+      else
+        display.setTextColor(BLACK, WHITE);
+      display.setCursor(0, 10);
+      display.print("Contrast: ");
+      display.print(contrast);
+
+      if (menu_item == 3)
+        display.setTextColor(WHITE, BLACK);
+      else
+        display.setTextColor(BLACK, WHITE);
+      display.setCursor(0, 20);
+      display.print("Backlight: ");
+      if (backlight)
+        display.print("ON");
+      else
+        display.print("OFF");
+
+      if (menu_item == 4)
+        display.setTextColor(WHITE, BLACK);
+      else
+        display.setTextColor(BLACK, WHITE);
+      display.setCursor(0, 30);
+      display.print("Back");
+      display.display();
+      break;
+
+    //Number of results
+    case 8:
+      display.setTextSize(1);
+      display.clearDisplay();
       display.setTextColor(BLACK, WHITE);
+      display.print("Number of");
+      display.setCursor(0, 8);
+      display.print("results");
+      display.setCursor(0, 25);
+      display.setTextSize(2);
+      display.print(num_results);
+      display.display();
+      break;
 
-    display.setCursor(0, 18);
-    display.print("Type sub");
-
-    if (menuitem == 2)
-      display.setTextColor(WHITE, BLACK);
-    else
+    //Change contrast
+    case 9:
+      display.setTextSize(1);
+      display.clearDisplay();
+      display.setCursor(0, 0);
       display.setTextColor(BLACK, WHITE);
-    display.setCursor(0, 28);
-    display.print("Choose preset");
+      display.print("Change");
+      display.setCursor(0, 10);
+      display.print("contrast");
+      //display.drawFastHLine(0, 20, 61, BLACK);
+      //display.drawFastVLine(60,0,20,BLACK);
+      display.setTextSize(2);
+      display.setCursor(20, 30);
+      display.print(contrast);
 
-    if (menuitem == 3)
-      display.setTextColor(WHITE, BLACK);
-    else
-      display.setTextColor(BLACK, WHITE);
+      if (contrast != 50) {
+        display.drawCircle(60, 15, 10, BLACK); //Circle
+        display.drawPixel(57.5, 10, BLACK); //Left eye
+        display.drawPixel(62.5, 10, BLACK); //Right eye
+        display.drawFastVLine(60, 25, 40, BLACK); //Body
+        if (test <= 40) {
+          display.drawLine(60, 30, 50, 40, BLACK); //Left arm down
+          display.drawLine(60, 30, 70, 40, BLACK); //Right arm down
+          test++;
+        }
 
-    display.setCursor(0, 38);
-    display.print("Exit");
-    display.display();
-  }
+        else if (test <= 80) {
+          display.drawLine(60, 30, 50, 27, BLACK); //Left arm up
+          display.drawLine(60, 30, 70, 27, BLACK); //Right arm up
+          test++;
+        }
 
-  //Type
-  else if (page == "type") {
-    display.setTextSize(2);
-    display.clearDisplay();
-    display.setCursor(0, 5);
-    display.setTextColor(BLACK, WHITE);
-    display.print(chars[letter]);
-    display.setCursor(0, 25);
-    display.setTextSize(1);
-    display.print(sub);
-    display.display();
-  }
+        if (test == 80)
+          test = 0;
+        display.drawRect(57.5, 17.5, 5, 5, BLACK); //Mouth facing left
+        display.display();
+      }
+      else {
+        display.drawBitmap(40, 10, pic, 48, 40, BLACK);
+        display.display();
+      }
+      break;
 
-  else if (page == "scrape")
-    scrape();
+    //More options - lead to num of results and increase scraper readability
+    case 7:
+      display.setTextSize(1);
+      display.clearDisplay();
+      display.setCursor(0, 0);
+      if (menu_item == 1)
+        display.setTextColor(WHITE, BLACK);
+      else
+        display.setTextColor(BLACK, WHITE);
+      display.print("Num of results: ");
+      display.print(num_results);
 
-  else if (page == "options") {
-    display.setTextSize(1);
-    display.clearDisplay();
+      if (menu_item == 2)
+        display.setTextColor(WHITE, BLACK);
+      else
+        display.setTextColor(BLACK, WHITE);
+      display.setCursor(0, 18);
+      display.print("EZ Read: ");
+      if (readability)
+        display.print("ON");
+      else
+        display.print("OFF");
 
-    if (menuitem == 1)
-      display.setTextColor(WHITE, BLACK);
-    else
-      display.setTextColor(BLACK, WHITE);
-
-    display.print("Num of results: ");
-    display.print(num_results);
-    if (menuitem == 2)
-      display.setTextColor(WHITE, BLACK);
-    else
-      display.setTextColor(BLACK, WHITE);
-    display.setCursor(0, 18);
-    display.print("Contrast: ");
-    display.print(contrast);
-
-    if (menuitem == 3)
-      display.setTextColor(WHITE, BLACK);
-    else
-      display.setTextColor(BLACK, WHITE);
-    display.setCursor(0, 28);
-    display.print("Backlight: ");
-    if (backlight)
-      display.print("ON");
-    else
-      display.print("OFF");
-
-    if (menuitem == 4)
-      display.setTextColor(WHITE, BLACK);
-    else
-      display.setTextColor(BLACK, WHITE);
-    display.setCursor(0, 38);
-    display.print("Back");
-    display.display();
-  }
-
-  else if (page == "change_contrast") {
-    display.setTextSize(2);
-    display.clearDisplay();
-    display.setCursor(5, 15);
-    display.setTextColor(BLACK, WHITE);
-    display.print(contrast);
-    display.display();
-  }
-
-  else if (page == "change_num") {
-    display.setTextSize(1);
-    display.clearDisplay();
-    display.setTextColor(BLACK, WHITE);
-    display.print("Number of");
-    display.setCursor(0, 8);
-    display.print("results");
-    display.setCursor(0, 25);
-    display.setTextSize(2);
-    display.print(num_results);
-    display.display();
-  }
-
-  else if (page == "choose_preset") {
-    display.setTextSize(1);
-    display.clearDisplay();
-
-    if (menuitem == 1)
-      display.setTextColor(WHITE, BLACK);
-    else
-      display.setTextColor(BLACK, WHITE);
-    display.setCursor(0, 0);
-    display.print(preset_subs[0]);
-
-    if (menuitem == 2)
-      display.setTextColor(WHITE, BLACK);
-    else
-      display.setTextColor(BLACK, WHITE);
-    display.setCursor(0, 10);
-    display.print(preset_subs[1]);
-
-    if (menuitem == 3)
-      display.setTextColor(WHITE, BLACK);
-    else
-      display.setTextColor(BLACK, WHITE);
-    display.setCursor(0, 20);
-    display.print(preset_subs[2]);
-
-    if (menuitem == 4)
-      display.setTextColor(WHITE, BLACK);
-    else
-      display.setTextColor(BLACK, WHITE);
-    display.setCursor(0, 30);
-    display.print(preset_subs[3]);
-
-    if (menuitem == 5)
-      display.setTextColor(WHITE, BLACK);
-    else
-      display.setTextColor(BLACK, WHITE);
-    display.setCursor(0, 40);
-    display.print(preset_subs[4]);
-    display.display();
+      if (menu_item == 3)
+        display.setTextColor(WHITE, BLACK);
+      else
+        display.setTextColor(BLACK, WHITE);
+      display.setCursor(0, 28);
+      display.print("Back");
+      display.display();
+      break;
   }
 }
 
@@ -576,6 +788,10 @@ void scrape() {
   display.display();
   Serial.print(String(num_results) + "\n");
   Serial.print(sub + "\n");
+  if (readability)
+    Serial.print("true\n");
+  else
+    Serial.print("false\n");
   delay(1000);
   display.clearDisplay();
 
@@ -617,7 +833,7 @@ void scrape() {
       else if (line4.length() < 14) {
         input = Serial.read();
         line4 += input;
-        display.setCursor(0,30);
+        display.setCursor(0, 30);
         display.print(line4);
         Serial.flush();
         display.display();
@@ -645,9 +861,58 @@ void scrape() {
     }
 
     if (line1 == "exit25") {
-      page = "main";
+      page = 1;
       return;
+    }
+
+    else if (line1 == "exit26") {
+      display.setTextSize(1);
+      display.clearDisplay();
+      display.setTextColor(BLACK, WHITE);
+      display.print("Unable to find");
+      display.setCursor(0, 10);
+      display.print(sub);
+      display.display();
+      delay(2000);
+      page = 1;
     }
   }
 }
+
+void instantiate_vars() {
+  chars[0] = 'a';
+  chars[1] = 'b';
+  chars[2] = 'c';
+  chars[3] = 'd';
+  chars[4] = 'e';
+  chars[5] = 'f';
+  chars[6] = 'g';
+  chars[7] = 'h';
+  chars[8] = 'i';
+  chars[9] = 'j';
+  chars[10] = 'k';
+  chars[11] = 'l';
+  chars[12] = 'm';
+  chars[13] = 'n';
+  chars[14] = 'o';
+  chars[15] = 'p';
+  chars[16] = 'q';
+  chars[17] = 'r';
+  chars[18] = 's';
+  chars[19] = 't';
+  chars[20] = 'u';
+  chars[21] = 'v';
+  chars[22] = 'w';
+  chars[23] = 'x';
+  chars[24] = 'y';
+  chars[25] = 'z';
+  preset_subs[0] = "popular";
+  preset_subs[1] = "jokes";
+  preset_subs[2] = "askreddit";
+  preset_subs[3] = "overwatch";
+  preset_subs[4] = "pics";
+  preset_subs[5] = "random";
+}
+
+
 
