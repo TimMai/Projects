@@ -1,6 +1,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_PCD8544.h>
 //Followed https://www.youtube.com/watch?v=VtZvf5T98FI as a basis for the menu code
+
 /*
   LCD -> Arduino Uno pin layout
   8 -> GND
@@ -14,69 +15,8 @@
   UP -> PIN 2
   DOWN -> PIN 12
   SELECT -> PIN 8
+  Use internal pullup resistors on PIN 2, 12, and 8.
 */
-static const unsigned char pic2[] PROGMEM = {
-  B11111111, B11111111, B11111111, B11111110, B11111111, B11111111, B11111111, B11110000,
-  B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11110000,
-  B11111111, B11111111, B11111111, B11110111, B10110101, B11011111, B11111111, B11110000,
-  B11111111, B11111111, B11110111, B11011110, B11011111, B01110111, B11111111, B11100000,
-  B11111111, B11111111, B11111111, B01111110, B01111011, B11101111, B11111111, B10110000,
-  B11111111, B11111111, B11011001, B11000001, B10000101, B10110111, B10111111, B11100000,
-  B11111111, B10111101, B11110111, B01011010, B01011010, B01101100, B10111111, B11100000,
-  B11111111, B11111011, B11101000, B00010010, B10001000, B10010111, B11011111, B01100000,
-  B11111101, B11111101, B11111001, B10100010, B00101001, B10010101, B01101110, B11000000,
-  B11111111, B01100110, B00000100, B10001000, B10000010, B01001010, B10010101, B10100000,
-  B11111111, B01010101, B01100000, B00000001, B00001000, B01010001, B10111001, B01000000,
-  B11111101, B11101010, B00000110, B00101000, B00100010, B00100110, B00101010, B10100000,
-  B11011110, B10010110, B00010000, B00000000, B10000001, B00010011, B10010101, B00100000,
-  B10111010, B01100001, B10000000, B00000000, B00000000, B10001000, B01101010, B01000000,
-  B10111011, B10011010, B01000000, B00001111, B11100000, B10010100, B00100011, B00000000,
-  B01100110, B01100000, B00000000, B00011111, B11110000, B00000010, B10010100, B10000000,
-  B10101010, B01001000, B01000000, B00111111, B11111100, B01000011, B10001000, B10000000,
-  B11011101, B10110010, B00000000, B11111111, B11111100, B00000000, B00110011, B00000000,
-  B00010110, B00000101, B00000001, B11111111, B11111111, B00010110, B01000100, B00000000,
-  B01101001, B01100000, B00100011, B11111111, B11111100, B00000000, B00100010, B01000000,
-  B10100100, B00100000, B00000001, B11111011, B11111110, B01000001, B00000000, B00000000,
-  B00011010, B10101001, B01000100, B11111011, B01111100, B00000100, B01011010, B00000000,
-  B00101001, B10001010, B00100000, B11111001, B01111100, B00010000, B00000000, B00000000,
-  B00100100, B00100000, B00000000, B01101100, B01111100, B00000010, B00101000, B00000000,
-  B10101100, B00101000, B00000000, B00101110, B00111000, B00001000, B01010010, B00000000,
-  B10000001, B01000010, B00100001, B11110000, B01111111, B00010000, B00000000, B00000000,
-  B00010001, B00011010, B01101111, B11111011, B11111111, B11100001, B00001000, B00000000,
-  B01101100, B10000000, B00111111, B11111110, B10111111, B11111101, B01010001, B00000000,
-  B00100010, B10001001, B01111111, B11100000, B00100110, B11111111, B00000100, B00000000,
-  B00011010, B00100001, B11111111, B11100101, B01011111, B11111111, B01000000, B10000000,
-  B10000000, B10000011, B11111111, B01111010, B00011011, B10111111, B11010010, B00000000,
-  B00101101, B00110111, B11111111, B01101111, B11101110, B11111111, B11001100, B00000000,
-  B10010100, B10001111, B11111111, B11101011, B10111101, B11111111, B11111100, B00000000,
-  B01101001, B01101111, B11111111, B11111010, B01100110, B01111111, B11110010, B10000000,
-  B11010101, B01011111, B11111111, B11011110, B01010110, B10111111, B11111010, B00100000,
-  B00101010, B10111111, B11111111, B10111011, B11011011, B11111111, B11111101, B11000000,
-  B10011001, B11111111, B11111111, B11101111, B10011011, B11111111, B11111110, B01000000,
-  B11111111, B11111111, B11111111, B11111110, B11110111, B11111111, B11111101, B10100000,
-  B00100100, B01111111, B11111111, B11111111, B11100111, B11111111, B11111110, B01000000,
-  B11111111, B01111111, B11111111, B11111011, B11111111, B11111111, B11111111, B10100000,
-  B11111111, B11111111, B11111111, B11111110, B11111111, B11111111, B11111111, B11000000,
-  B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11111111, B11110000,
-  B11111111, B11111111, B11101111, B11111101, B11111101, B11111111, B11101111, B11110000,
-  B01010110, B10000001, B00001010, B01000000, B00000000, B11101011, B00001110, B01000000,
-  B00011000, B01001000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
-  B01000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
-  B00001000, B00000000, B00000000, B00000000, B01010000, B00000000, B00000000, B00000000,
-  B01000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
-  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
-  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
-  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
-  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
-  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
-  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
-  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
-  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
-  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
-  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
-  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
-  B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
-};
 
 static const unsigned char pic[] PROGMEM = {
   B00000000, B00000000, B00000000, B00000000, B00000000, B00000000,
@@ -149,20 +89,22 @@ int test = 0; //Testing with the GFX library on the contrast page
   main - choose sub, scrape, or go to options
   sub - type in a subreddit or choose from a preset sub
   type - type in a subreddit
-  options - change the number of scraped results, change the contrast, turn on/off the backlight
-  change_contrast - change contrast
-  change_num - change number of scraped results
   choose_preset - choose a preset sub
-*/
-/*
+  options - leads to more options, change the contrast, turn on/off the backlight
+  more_options - leads to change number of scraped results and turning on/off EZ Read
+  change_num - change number of scraped results
+  change_contrast - change contrast
+
+  name -> number
   main - 1
   subreddit menu - 2
   type sub - 3
   choose preset sub - 4
   scrape - 5
   options - 6
-  num of results - 7
-  change contrast - 8
+  more options - 7
+  num of results - 8
+  change contrast - 9
 */
 
 //Keep track of whether the button has been pressed
@@ -179,10 +121,10 @@ int lastup_button_state = 0;
 
 Adafruit_PCD8544 display = Adafruit_PCD8544(5, 4, 3);
 
-void menu();  //Render the display
-void check_down_button();
-void check_up_button();
-void check_select_button();
+void menu();  //Render the menu system
+void check_down_button(); //Check status of button12
+void check_up_button();   //Check status of button2
+void check_select_button(); //Check status of button8
 void scrape();  //Scrape the subreddit
 
 
@@ -200,9 +142,7 @@ void setup() {
   display.setContrast(contrast); //Set default contrast to 42
   display.display();
   display.clearDisplay();
-
   display.setTextSize(2);
-
   display.setTextColor(BLACK, WHITE);
   display.setCursor(5, 0);
   display.print("Reddit");
@@ -312,6 +252,8 @@ void loop() {
       }
 
       else if (select) {
+        if (sub == "")  //Do not allow empty entries
+          sub = "random";
         select = false;
         page = 2; //Subreddit menu
       }
@@ -566,12 +508,16 @@ void menu() {
     case 3:
       display.setTextSize(2);
       display.clearDisplay();
-      display.setCursor(0, 5);
+      display.setCursor(0, 0);
       display.setTextColor(BLACK, WHITE);
       display.print(chars[letter]);
-      display.setCursor(0, 25);
+      display.setCursor(0, 20);
       display.setTextSize(1);
       display.print(sub);
+      display.setCursor(0,30);
+      display.print("'blank' not"); 
+      display.setCursor(0,40);
+      display.print("allowed");
       display.display();
       break;
 
@@ -660,7 +606,39 @@ void menu() {
       display.print("Back");
       display.display();
       break;
+      
+    //More options - lead to num of results and increase scraper readability
+    case 7:
+      display.setTextSize(1);
+      display.clearDisplay();
+      display.setCursor(0, 0);
+      if (menu_item == 1)
+        display.setTextColor(WHITE, BLACK);
+      else
+        display.setTextColor(BLACK, WHITE);
+      display.print("Num of results: ");
+      display.print(num_results);
 
+      if (menu_item == 2)
+        display.setTextColor(WHITE, BLACK);
+      else
+        display.setTextColor(BLACK, WHITE);
+      display.setCursor(0, 18);
+      display.print("EZ Read: ");
+      if (readability)
+        display.print("ON");
+      else
+        display.print("OFF");
+
+      if (menu_item == 3)
+        display.setTextColor(WHITE, BLACK);
+      else
+        display.setTextColor(BLACK, WHITE);
+      display.setCursor(0, 28);
+      display.print("Back");
+      display.display();
+      break;
+      
     //Number of results
     case 8:
       display.setTextSize(1);
@@ -706,9 +684,10 @@ void menu() {
           display.drawLine(60, 30, 70, 27, BLACK); //Right arm up
           test++;
         }
-
+    
         if (test == 80)
-          test = 0;
+          test = 0; //Reset the counter
+          
         display.drawRect(57.5, 17.5, 5, 5, BLACK); //Mouth facing left
         display.display();
       }
@@ -716,38 +695,6 @@ void menu() {
         display.drawBitmap(40, 10, pic, 48, 40, BLACK);
         display.display();
       }
-      break;
-
-    //More options - lead to num of results and increase scraper readability
-    case 7:
-      display.setTextSize(1);
-      display.clearDisplay();
-      display.setCursor(0, 0);
-      if (menu_item == 1)
-        display.setTextColor(WHITE, BLACK);
-      else
-        display.setTextColor(BLACK, WHITE);
-      display.print("Num of results: ");
-      display.print(num_results);
-
-      if (menu_item == 2)
-        display.setTextColor(WHITE, BLACK);
-      else
-        display.setTextColor(BLACK, WHITE);
-      display.setCursor(0, 18);
-      display.print("EZ Read: ");
-      if (readability)
-        display.print("ON");
-      else
-        display.print("OFF");
-
-      if (menu_item == 3)
-        display.setTextColor(WHITE, BLACK);
-      else
-        display.setTextColor(BLACK, WHITE);
-      display.setCursor(0, 28);
-      display.print("Back");
-      display.display();
       break;
   }
 }
@@ -785,6 +732,8 @@ void scrape() {
   display.print("Scraping:");
   display.setCursor(0, 10);
   display.print(sub);
+  display.setCursor(0,30);
+  display.print("Num of results: " + String(num_results));
   display.display();
   Serial.print(String(num_results) + "\n");
   Serial.print(sub + "\n");
@@ -850,7 +799,46 @@ void scrape() {
     }
 
     if (score.length() == 15) {
-      delay(2000);
+      unsigned long start_time = millis();
+      unsigned long end_time = millis();
+      bool wait = false;
+
+      //Give a 2 second window to either quit or pause
+      while(end_time - start_time < 2000) {
+        end_time = millis();
+
+        //If the up button is pressed, quit
+        if (digitalRead(2) == LOW) {
+          page = 1;
+          menu_item = 1;
+          Serial.print("quit\n");
+          return;
+        }
+
+        //If the down button is pressed, pause
+        if (digitalRead(12) == LOW) {
+          Serial.print("wait\n");
+          wait = true;
+          delay(1000);  
+          break;
+        }
+      }
+      
+      while (wait) {
+        //If the up button is pressed while scraping is paused, quit
+        if (digitalRead(2) == LOW) {
+          page = 1;
+          menu_item = 1;
+          Serial.print("quit\n");
+          return;
+        }
+
+        //If the down button is pressed, resume scraping
+        if (digitalRead(12) == LOW)
+          break;
+      }
+      
+      Serial.print("go\n");
       display.clearDisplay();
       line1 = "";
       line2 = "";
@@ -862,6 +850,7 @@ void scrape() {
 
     if (line1 == "exit25") {
       page = 1;
+      menu_item = 1;
       return;
     }
 
@@ -875,6 +864,7 @@ void scrape() {
       display.display();
       delay(2000);
       page = 1;
+      break;
     }
   }
 }
