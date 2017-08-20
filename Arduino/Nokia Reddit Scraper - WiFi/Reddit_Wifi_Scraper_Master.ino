@@ -1,5 +1,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_PCD8544.h>
+#include <Wire.h>
+
 //Followed https://www.youtube.com/watch?v=VtZvf5T98FI as a basis for the menu code
 
 /*
@@ -20,19 +22,19 @@
 */
 
 /*
-New layout
-8 - GND
-7 - 2
-6 - 3.3 V
-5 - 3
-4 - 4
-3 - 5
-2 - 6
-1 - 7
+  New layout
+  8 - GND
+  7 - 2
+  6 - 3.3 V
+  5 - 3
+  4 - 4
+  3 - 5
+  2 - 6
+  1 - 7
 
-UP - 13
-DOWN - 12
-SELECT - 11
+  UP - 13
+  DOWN - 12
+  SELECT - 11
 */
 
 static const unsigned char pic[] PROGMEM = {
@@ -90,12 +92,12 @@ static const unsigned char pic[] PROGMEM = {
 boolean backlight = true;
 int contrast = 42;
 int num_results = 10;   //Number of results that will be displayed
-bool readability = true;
+bool ez_read = true;
 
 int menu_item = 1;      //Current item on the menu
 int page = 1;           //Current page
 String sub = "popular"; //Current selected sub
-String preset_subs[6];  //Array of preset subs
+char * preset_subs[6];  //Array of preset subs
 int letter = 0;         //Keep track of current letter when typing
 char chars[26];         //Characters A-Z
 
@@ -108,6 +110,13 @@ int temp_select_button = 11;
 int up_button = 13;
 int down_button = 12;
 int select_button = 11;
+
+//WIFI additions
+int id = 0;
+bool cont = false;
+String wire_request = "";
+int global_pulse = 1;
+
 
 /*
   Pages: main, sub, type, scrape, options, change_contrast, change_num, choose_preset
@@ -154,7 +163,7 @@ void scrape();  //Scrape the subreddit
 
 
 void setup() {
-
+  Wire.begin();
   pinMode(up_button, INPUT_PULLUP);   //Up
   pinMode(down_button, INPUT_PULLUP);  //Down
   pinMode(select_button, INPUT_PULLUP);   //Select
@@ -174,6 +183,20 @@ void setup() {
   display.setCursor(0, 20);
   display.print("Scraper");
   display.display();
+
+  wire_request = "RequestID";
+  Wire.beginTransmission(1);
+  Wire.write(wire_request.c_str());
+  Wire.endTransmission();
+
+  Wire.requestFrom(1, 3);
+  Serial.println("Requesting ID...");
+  while (!cont) {
+    receiveEvent();
+  }
+  Serial.println("ID: " + String(id));
+  cont = false;
+
   delay(2000);
   display.clearDisplay();
   instantiate_vars();
@@ -401,10 +424,10 @@ void loop() {
             break;
 
           case 2:
-            if (readability)
-              readability = false;
+            if (ez_read)
+              ez_read = false;
             else
-              readability = true;
+              ez_read = true;
             break;
 
           case 3:
@@ -762,7 +785,7 @@ void menu() {
       display.display();
       break;
 
-    //More options - lead to num of results and increase scraper readability
+    //More options - lead to num of results and increase scraper ez_read
     case 7:
       display.setTextSize(1);
       display.clearDisplay();
@@ -780,7 +803,7 @@ void menu() {
         display.setTextColor(BLACK, WHITE);
       display.setCursor(0, 18);
       display.print("EZ Read: ");
-      if (readability)
+      if (ez_read)
         display.print("ON");
       else
         display.print("OFF");
@@ -893,7 +916,7 @@ void menu() {
       display.print("Back");
       display.display();
       break;
-      
+
   }
 }
 
@@ -937,151 +960,118 @@ void check_select_button() {
 void scrape() {
   display.setTextSize(1);
   display.clearDisplay();
-  display.print("Scraping:");
+  display.print("Sending");
   display.setCursor(0, 10);
-  display.print(sub);
-  display.setCursor(0, 30);
-  display.print("Num of results: " + String(num_results));
+  display.print("params...");
   display.display();
-  Serial.print(String(num_results) + "\n");
-  Serial.print(sub + "\n");
-  if (readability)
-    Serial.print("true\n");
+
+  //Occurs when beginning scrape BEGIN
+  Serial.println("Send params...");
+  wire_request = "SendParams";
+  Wire.beginTransmission(1);
+  Wire.write(wire_request.c_str());
+  Wire.endTransmission();
+  delay(100);
+
+  //Send param1 - sub
+  wire_request = sub;
+  Wire.beginTransmission(1);
+  Wire.write(wire_request.c_str());
+  Wire.endTransmission();
+  delay(100);
+
+  //Send param2 - num_results
+  wire_request = String(num_results);
+  Wire.beginTransmission(1);
+  Wire.write(wire_request.c_str());
+  Wire.endTransmission();
+  delay(100);
+
+  //Send param3 - id
+  wire_request = String(id);
+  Wire.beginTransmission(1);
+  Wire.write(wire_request.c_str());
+  Wire.endTransmission();
+  delay(100);
+
+  //Send param4 - ez_read
+  if (ez_read)
+    wire_request = "true";
   else
-    Serial.print("false\n");
-  delay(1000);
+    wire_request = "false";
+  Wire.beginTransmission(1);
+  Wire.write(wire_request.c_str());
+  Wire.endTransmission();
+  delay(10000);
+
+  //Wait for the OK that the params have been sent
+  Serial.println("Is it OK?");
+  wire_request = "SendOK";  //Don't need to send this message because it automatically does it on the slave size
+  Wire.requestFrom(1, 2);
+  while (!cont) {
+    receiveEvent();
+  }
+  cont = false;
   display.clearDisplay();
 
-  char input;
-  String line1;
-  String line2;
-  String line3;
-  String line4;
-  String score;
-  while (1) {
-    if (Serial.available()) {
-      if (line1.length() < 14) {
-        input = Serial.read();
-        line1 += input;
-        display.setCursor(0, 0);
-        display.print(line1);
-        Serial.flush();
-        display.display();
-      }
+  /*
+    display.setCursor(0, 0);
+    display.setTextSize(1);
+    display.print("Retrieving");
+    display.setCursor(0, 10);
+    display.print("results...");
+    display.display();
+    //Occurs when scraping BEGIN
+    Serial.println("Get the results");
+    wire_request = "GetResults";
+    Wire.beginTransmission(1);
+    Wire.write(wire_request.c_str());
+    Wire.endTransmission();
+    delay(15000);
+    display.clearDisplay();
+  */
 
-      else if (line2.length() < 14) {
-        input = Serial.read();
-        line2 += input;
-        display.setCursor(0, 10);
-        display.print(line2);
-        Serial.flush();
-        display.display();
-      }
+  //First see if the results and params have matching IDs
+  while (!cont) {
+    display.setCursor(0, 0);
+    display.setTextSize(1);
+    display.print("Retrieving");
+    display.setCursor(0, 10);
+    display.print("results...");
+    display.display();
+    //Occurs when scraping BEGIN
+    Serial.println("Get the results");
+    wire_request = "GetResults";
+    Wire.beginTransmission(1);
+    Wire.write(wire_request.c_str());
+    Wire.endTransmission();
+    delay(15000);
+    display.clearDisplay();
 
-      else if (line3.length() < 14) {
-        input = Serial.read();
-        line3 += input;
-        display.setCursor(0, 20);
-        display.print(line3);
-        Serial.flush();
-        display.display();
-      }
-
-      else if (line4.length() < 14) {
-        input = Serial.read();
-        line4 += input;
-        display.setCursor(0, 30);
-        display.print(line4);
-        Serial.flush();
-        display.display();
-      }
-
-      else {
-        input = Serial.read();
-        score += input;
-        display.setCursor(0, 40);
-        display.print(score);
-        Serial.flush();
-        display.display();
-      }
-    }
-
-    if (score.length() == 15) {
-      unsigned long start_time = millis();
-      unsigned long end_time = millis();
-      bool wait = false;
-
-      //Give a 2 second window to either quit or pause
-      while (end_time - start_time < 2000) {
-        end_time = millis();
-
-        check_buttons();
-        //If the up button is pressed, quit
-        if (up) {
-          up = false;
-          page = 1;
-          menu_item = 1;
-          Serial.print("quit\n");
-          return;
-        }
-
-        //If the down button is pressed, pause
-        if (down) {
-          down = false;
-          Serial.print("wait\n");
-          wait = true;
-          break;
-        }
-      }
-
-      while (wait) {
-        check_buttons();
-        //If the up button is pressed while scraping is paused, quit
-        if (up) {
-          up = false;
-          page = 1;
-          menu_item = 1;
-          Serial.print("quit\n");
-          return;
-        }
-
-        //If the down button is pressed, resume scraping
-        //No need to set wait = false because it is a local variable that is reinstantiated as false
-        if (down) {
-          down = false;
-          break;
-        }
-      }
-
-      Serial.print("go\n");
-      display.clearDisplay();
-      line1 = "";
-      line2 = "";
-      line3 = "";
-      line4 = "";
-      score = "";
-      display.display();
-    }
-
-    if (line1 == "exit25") {
-      page = 1;
-      menu_item = 1;
-      return;
-    }
-
-    else if (line1 == "exit26") {
-      display.setTextSize(1);
-      display.clearDisplay();
-      display.setTextColor(BLACK, WHITE);
-      display.print("Unable to find");
-      display.setCursor(0, 10);
-      display.print(sub);
-      display.display();
-      delay(2000);
-      page = 1;
-      break;
-    }
+    Wire.requestFrom(1, 2);
+    receiveEvent();
+    delay(4000);
+    //Also allow the user to end the scrape prematurely
   }
+  cont = false;
+  Serial.println("Past phase 0");
+
+  for (int pulse = 1; pulse < num_results * 3; pulse++) {
+    //Serial.println("Waiting for pulse " + String(pulse));
+    while (!cont) {
+      if (pulse % 3 != 0)
+        Wire.requestFrom(1, 28);
+      else
+        Wire.requestFrom(1, 15);
+      receiveEvent();
+      delay(2500);
+    }
+    Serial.println("Next phase");
+    cont = false;
+  }
+  wire_request = "";
+  id++;
+
 }
 
 void instantiate_vars() {
@@ -1119,5 +1109,84 @@ void instantiate_vars() {
   preset_subs[5] = "random";
 }
 
+void receiveEvent() {
+  String input;
 
+  while (Wire.available()) {
+    char c = Wire.read();
+    input += c;
+  }
 
+  if (input == "") {
+    cont = false;
+    return;
+  }
+
+  if (wire_request == "RequestID") {
+    for (int i = 0; i < input.length(); i++) {
+      if (input[i] == ' ') {
+        input = input.substring(0, i);
+      }
+    }
+    id = input.toInt();
+    cont = true;
+    wire_request = "";
+    return;
+  }
+
+  else if (wire_request == "SendOK" && input == "OK") {
+    Serial.println("Got the OK");
+    wire_request = "";
+    cont = true;
+    return;
+  }
+
+  else if (wire_request == "GetResults" && input == "OK") {
+    Serial.println("IDs match.");
+    cont = true;
+    return;
+  }
+
+  else if (wire_request == "GetResults" && input == "NO") {
+    Serial.println("IDs do not match.");
+    cont = false;
+    return;
+  }
+
+  else if (wire_request == "GetResults") {
+    //Displaying on screen
+    Serial.println(input);
+
+    if (global_pulse % 3 == 1) {
+      display.setCursor(0, 0);
+      display.setTextSize(1);
+      display.print(input.substring(0, 14));
+      display.setCursor(0, 10);
+      display.print(input.substring(14, 28));
+      display.display();
+      global_pulse++;
+    }
+
+    else if (global_pulse % 3 == 2) {
+      display.setCursor(0, 20);
+      display.print(input.substring(0, 14));
+      display.setCursor(0, 30);
+      display.print(input.substring(14, 28));
+      display.display();
+      global_pulse++;
+    }
+
+    else {
+      display.setCursor(0, 40);
+      display.print(input);
+      display.display();
+      delay(1250);
+      display.clearDisplay();
+      global_pulse++;
+    }
+
+    page = 1;
+    cont = true;
+    return;
+  }
+}
